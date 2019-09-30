@@ -42,11 +42,20 @@ public class ViewingFigures
 		JavaPairRDD<Integer, Integer> couseNumberOfWatchedEpisodes = rddWithNumberOfWatchedEpisodes.mapToPair(tuple -> new Tuple2<>(tuple._1._2, tuple._2)); // course number
 
 		JavaPairRDD<Integer, Integer> episodesPerCourse = chapterData.mapToPair(tuple -> new Tuple2<>(tuple._2, 1)).reduceByKey((a, b) -> a + b); //course numberOfEpisodes
-		JavaPairRDD<Integer, Tuple2<Integer, Integer>> rddWatchedFromTotal = couseNumberOfWatchedEpisodes.join(episodesPerCourse);
+		JavaPairRDD<Integer, Tuple2<Integer, Integer>> rddWatchedFromTotal = couseNumberOfWatchedEpisodes.join(episodesPerCourse); //course view of
 
+		JavaPairRDD<Integer, Double> integerDoubleJavaPairRDD = rddWatchedFromTotal.mapToPair(tuple -> new Tuple2<>(tuple._1, (Double.valueOf(tuple._2._1) / Double.valueOf(tuple._2._2)))); // course persentage
 
-		rddWatchedFromTotal.foreach(t -> System.out.println(t));
+		JavaPairRDD<Integer, Long> pointsPerUsersData = integerDoubleJavaPairRDD.mapValues(value -> {
+			if (value > 0.9) return 10L;
+			if (value > 0.5) return 4L;
+			if (value > 0.25) return 2L;
+			return 0L;
+		});
 
+		JavaPairRDD<Integer, Long> finalResult = pointsPerUsersData.reduceByKey((a, b) -> a + b);
+		JavaPairRDD<String, Tuple2<Integer, Long>> rddWithPointsAndTitles = finalResult.join(titlesData).mapToPair(t -> new Tuple2<>(t._2._2, new Tuple2<>(t._1, t._2._1)));
+		rddWithPointsAndTitles.foreach(t -> System.out.println(t));
 
 		sc.close();
 	}
