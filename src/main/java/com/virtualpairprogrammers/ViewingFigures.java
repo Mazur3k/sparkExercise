@@ -36,18 +36,17 @@ public class ViewingFigures
 		// TODO - over to you!
 
 		viewData = viewData.distinct().mapToPair(tuple -> new Tuple2<>(tuple._2, tuple._1));
-		JavaPairRDD<Integer, Tuple2<Integer, Integer>> chapterUserCourse = viewData.join(chapterData); //chapterId - userId - courseId
-		JavaPairRDD<Tuple2<Integer, Integer>, Integer> prepareToReduceByKey = chapterUserCourse.mapToPair(tuple -> new Tuple2<>(new Tuple2<>(tuple._2._1, tuple._1), 1));//courseId - chapterId - userId -> (courseId, userId), chapter
-		JavaPairRDD<Tuple2<Integer, Integer>, Integer> numberOfWatchedEpisodesByUserAndCourse = prepareToReduceByKey.reduceByKey((a, b) -> a + b); // (courseId, userId), numberOfWatchedEpisodes -> courseId, (userId, numberOfWatchedEpisodes)
-		JavaPairRDD<Integer, Tuple2<Integer, Integer>> integerTuple2JavaPairRDD = numberOfWatchedEpisodesByUserAndCourse.mapToPair(tuple -> new Tuple2<>(tuple._1._1, new Tuple2<>(tuple._1._2, tuple._2))); // courseId, (userId, numberOfWatchedEpisodes)
+		JavaPairRDD<Integer, Tuple2<Integer, Integer>> chapterUserCourse = viewData.join(chapterData); //chapter (user, course)
+		JavaPairRDD<Tuple2<Integer, Integer>, Integer> userCourse = chapterUserCourse.mapToPair(tuple -> new Tuple2<>(tuple._2, 1)); //(user, course) 1
+		JavaPairRDD<Tuple2<Integer, Integer>, Integer> rddWithNumberOfWatchedEpisodes = userCourse.reduceByKey((a, b) -> a + b); //(user, course) number
+		JavaPairRDD<Integer, Integer> couseNumberOfWatchedEpisodes = rddWithNumberOfWatchedEpisodes.mapToPair(tuple -> new Tuple2<>(tuple._1._2, tuple._2)); // course number
 
-		JavaPairRDD<Integer, Integer> numberOfChapterPerCourse = chapterData.mapToPair(tuple -> new Tuple2<>(tuple._2, 1)).reduceByKey((a, b) -> a + b); //courseId - numberOfCourses
-		JavaPairRDD<Integer, Tuple2<Tuple2<Integer, Integer>, Integer>> almostDone = integerTuple2JavaPairRDD.join(numberOfChapterPerCourse); // courseId , (userId, numberOfWatchedEpisodes)-tuple2.1 |||| numberOfCourses- tuple2.2) -> couseId, numberOfWatchedEpisodes/numberOfCourses
-		JavaPairRDD<Integer, Double> courseAndPersentage = almostDone.mapToPair(tuple -> new Tuple2<>(tuple._1, (Double.valueOf(tuple._2._1._2) / Double.valueOf(tuple._2._2)) * 100));// couseId, persentage
+		JavaPairRDD<Integer, Integer> episodesPerCourse = chapterData.mapToPair(tuple -> new Tuple2<>(tuple._2, 1)).reduceByKey((a, b) -> a + b); //course numberOfEpisodes
+		JavaPairRDD<Integer, Tuple2<Integer, Integer>> rddWatchedFromTotal = couseNumberOfWatchedEpisodes.join(episodesPerCourse);
 
-		integerTuple2JavaPairRDD.foreach(t -> System.out.println(t));
-		numberOfChapterPerCourse.foreach(t -> System.out.println(t));
-		chapterUserCourse.foreach(t -> System.out.println(t));
+
+		rddWatchedFromTotal.foreach(t -> System.out.println(t));
+
 
 		sc.close();
 	}
