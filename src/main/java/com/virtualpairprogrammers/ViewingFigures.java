@@ -27,7 +27,7 @@ public class ViewingFigures
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		
 		// Use true to use hardcoded data identical to that in the PDF guide.
-		boolean testMode = true;
+		boolean testMode = false;
 		
 		JavaPairRDD<Integer, Integer> viewData = setUpViewDataRdd(sc, testMode); //userId, chapterId
 		JavaPairRDD<Integer, Integer> chapterData = setUpChapterDataRdd(sc, testMode); //chapterId, courseId
