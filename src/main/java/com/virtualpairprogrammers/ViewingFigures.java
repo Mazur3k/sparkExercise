@@ -25,15 +25,12 @@ public class ViewingFigures
 
 		SparkConf conf = new SparkConf().setAppName("startingSpark").setMaster("local[*]");
 		JavaSparkContext sc = new JavaSparkContext(conf);
-		
-		// Use true to use hardcoded data identical to that in the PDF guide.
+
 		boolean testMode = false;
 		
 		JavaPairRDD<Integer, Integer> viewData = setUpViewDataRdd(sc, testMode); //userId, chapterId
 		JavaPairRDD<Integer, Integer> chapterData = setUpChapterDataRdd(sc, testMode); //chapterId, courseId
 		JavaPairRDD<Integer, String> titlesData = setUpTitlesDataRdd(sc, testMode); //courseId, title
-
-		// TODO - over to you!
 
 		viewData = viewData.distinct().mapToPair(tuple -> new Tuple2<>(tuple._2, tuple._1));
 		JavaPairRDD<Integer, Tuple2<Integer, Integer>> chapterUserCourse = viewData.join(chapterData); //chapter (user, course)

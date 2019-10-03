@@ -13,7 +13,6 @@ public class SparkSqlExample {
         Dataset<Row> dataset = spark.read().option("header", true).csv("src/main/resources/exams/students.csv");
         dataset.createOrReplaceTempView("Students");
 
-         //average score per year
         Dataset<Row> averageScorePerSubject = spark.sql("select subject, year, avg(score) as avg_score from Students group by subject, year order by year");
         averageScorePerSubject.show(100);
 
